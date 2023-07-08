@@ -6,7 +6,9 @@
         <div class="w-full h-full bg-stone-50 p-8 shadow-lg text-black font-sans text-left">
             <div class="flex flex-col gap-2">
                 <p class="text-3xl font-bold">Uh-Oh!</p>
-                <p class="text-xl">Looks like you are experiencing some network issues, please take a breather and <a class="font-bold hover:text-rose-500 transition-colors" href="#" @click="router.go(-1)">click here</a> to go back.</p>
+                <p class="text-xl">Looks like you are experiencing some network issues, please take a breather and <a
+                        class="font-bold hover:text-rose-500 transition-colors" href="#" @click="router.go(-1)">click
+                        here</a> to go back.</p>
                 <p>Sorry, we cannot fetch the data from the server.</p>
                 <p>Please try again later.</p>
             </div>

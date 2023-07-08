@@ -16,7 +16,6 @@ const router = useRouter()
 PassengerAPIServices.getPassenger(props.id).then((res) => {
     passenger.value = res.data
 }).catch((err: AxiosError) => {
-    console.error(err)
     if (err.response && err.response.status === 404) {
         router.push({ name: '404-resource', params: { resource: 'passenger' } })
     } else if (err.code === 'ERR_NETWORK')
