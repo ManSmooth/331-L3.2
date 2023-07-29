@@ -5,6 +5,10 @@ import NetworkErrorView from '@/views/NetworkErrorView.vue'
 import PassengerView from '@/views/PassengerView.vue'
 import PassengerDetailView from '@/views/passenger/PassengerDetailView.vue'
 import PassengerAirlineView from '@/views/passenger/PassengerAirlineView.vue'
+import { usePassengerStore } from '@/stores/passenger'
+import PassengerAPIServices from '@/services/PassengerAPIServices'
+import type { AxiosError } from 'axios'
+import nProgress from 'nprogress'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,8 +20,8 @@ const router = createRouter({
       props: (route) => ({ page: parseInt(route.query?.page as string) }),
       beforeEnter: (to, _, next) => {
         if (
-          parseInt(to.query?.page as string) < 1 ||
           !to.query?.page ||
+          parseInt(to.query?.page as string) < 1 ||
           isNaN(parseInt(to.query?.page as string))
         ) {
           next({ name: 'passenger-list', query: { page: 1 } })
@@ -30,6 +34,21 @@ const router = createRouter({
       path: '/passenger/:id',
       component: PassengerView,
       props: true,
+      beforeEnter: (to) => {
+        const id: number = parseInt(to.params.id as string)
+        const passengerStore = usePassengerStore()
+        passengerStore.resetPassenger()
+        nProgress.set(0.4)
+        PassengerAPIServices.getPassenger(id)
+          .then((res) => {
+            passengerStore.setPassenger(res.data)
+          })
+          .catch((err: AxiosError) => {
+            if (err.response && err.response.status === 404) {
+              return { name: '404-resource', params: { resource: 'passenger' } }
+            } else if (err.code === 'ERR_NETWORK') return { name: 'network-error' }
+          })
+      },
       children: [
         {
           path: 'details',
@@ -42,7 +61,7 @@ const router = createRouter({
           name: 'passenger-airline',
           component: PassengerAirlineView,
           props: true
-        },
+        }
       ]
     },
     {
@@ -61,7 +80,19 @@ const router = createRouter({
       name: 'not-found',
       component: NotFoundView
     }
-  ]
+  ],
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition
+    else return { top: 0 }
+  }
+})
+
+router.beforeEach(() => {
+  nProgress.start()
+})
+
+router.afterEach(() => {
+  nProgress.done()
 })
 
 export default router

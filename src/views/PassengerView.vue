@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import PassengerAPIServices from '@/services/PassengerAPIServices';
-import type { Passenger } from '@/types';
-import type { AxiosError } from 'axios';
-import { ref } from 'vue';
+import { useMessageStore } from '@/stores/message';
+import { usePassengerStore } from '@/stores/passenger';
+import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 const props = defineProps({
     id: {
@@ -10,24 +9,30 @@ const props = defineProps({
         required: true,
     }
 })
-const passenger = ref<Passenger | null>()
+const { passenger } = storeToRefs(usePassengerStore())
 const router = useRouter()
+const messageStore = useMessageStore()
 
-PassengerAPIServices.getPassenger(props.id).then((res) => {
-    passenger.value = res.data
-}).catch((err: AxiosError) => {
-    if (err.response && err.response.status === 404) {
-        router.push({ name: '404-resource', params: { resource: 'passenger' } })
-    } else if (err.code === 'ERR_NETWORK')
-        router.push({ name: 'network-error' })
-})
+function Edit() {
+    messageStore.setMessage(`Updating ${passenger.value?.first_name} ${passenger.value?.last_name}`)
+    setTimeout(() => {
+        messageStore.resetMessage()
+        router.push({ name: 'passenger-list' })
+    }, 5000)
+
+}
 </script>
 <template>
     <div v-if="passenger" class="p-4 flex justify-center w-full">
         <div class="bg-stone-50 text-black p-4 font-serif w-3/6 flex flex-col gap-4">
-            <div class="flex flex-col">
-                <p class="opacity-50">Passenger #{{ passenger.id }}</p>
-                <p class="text-3xl">{{ passenger.first_name }} {{ passenger.last_name }}</p>
+            <div class="flex justify-between">
+                <div class="flex flex-col">
+                    <p class="opacity-50">Passenger #{{ passenger.id }}</p>
+                    <p class="text-3xl">{{ passenger.first_name }} {{ passenger.last_name }}</p>
+                </div>
+                <button @click="Edit" class="underline">
+                    Edit
+                </button>
             </div>
             <div class="flex flex-row gap-2 min-h-[240px]">
                 <div class="flex flex-col items-start w-fit">
